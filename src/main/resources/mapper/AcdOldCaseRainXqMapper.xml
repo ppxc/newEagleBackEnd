@@ -31,4 +31,12 @@
         WHERE latitude IS NOT NULL AND longitude IS NOT NULL
     </select>
 
+    <select id="selectWithCoordinatesByDate" resultMap="AcdOldCaseRainXqResultMap">
+        SELECT id, makecom, reportdate, reporthour, damagename, damageaddress, checkaddress, latitude, longitude
+        FROM acd_old_case_rain_xq
+        WHERE reportdate = #{reportdate}
+          AND latitude IS NOT NULL
+          AND longitude IS NOT NULL
+    </select>
+
 </mapper>

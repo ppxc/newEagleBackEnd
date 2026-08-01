@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.entity.HeatData;
+import com.example.demo.entity.HotPoint;
 import com.example.demo.entity.Result;
 import com.example.demo.service.FloodSeasonHeatmapService;
 import org.slf4j.Logger;
@@ -35,6 +36,23 @@ public class FloodSeasonHeatmapController {
         } catch (Exception e) {
             log.error("获取热力图数据失败", e);
             return Result.error("获取热力图数据失败", e);
+        }
+    }
+
+    /**
+     * 新增:返回每个原始事故点 + 密度着色档位,供前端以 marker 形式渲染。
+     * 与 /hotmap(聚合热力接口)并行存在,不互相影响。
+     */
+    @GetMapping("/hotPoints")
+    public Result<List<HotPoint>> getHotPoints(
+            @RequestParam(required = false) String date
+    ) {
+        try {
+            List<HotPoint> data = floodSeasonHeatmapService.getHotPoints(date);
+            return Result.success(data);
+        } catch (Exception e) {
+            log.error("获取热力点数据失败", e);
+            return Result.error("获取热力点数据失败", e);
         }
     }
 }
