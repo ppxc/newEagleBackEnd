@@ -10,4 +10,5 @@ public interface AcdOldCaseRainXqMapper {
     List<AcdOldCaseRainXq> selectAll();
     List<AcdOldCaseRainXq> selectByDate(@Param("reportdate") String reportdate);
     List<AcdOldCaseRainXq> selectWithCoordinates();
+    List<AcdOldCaseRainXq> selectWithCoordinatesByDate(@Param("reportdate") String reportdate);
 }
