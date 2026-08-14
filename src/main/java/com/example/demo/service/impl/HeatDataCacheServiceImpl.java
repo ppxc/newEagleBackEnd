@@ -790,12 +790,17 @@ public class HeatDataCacheServiceImpl implements HeatDataCacheService {
         // 用临时 Map 去重（每次 merge 都重建，n 一般较小可接受）
         Map<String, HeatData> existingMap = new HashMap<>();
         for (HeatData hd : entry.data) {
-            String key = String.format("%.3f,%.3f", hd.getLng(), hd.getLat());
-            existingMap.put(key, hd);
+            String key = formatLngLatKey(hd);
+            if (key != null) {
+                existingMap.put(key, hd);
+            }
         }
 
         for (HeatData newHd : newData) {
-            String key = String.format("%.3f,%.3f", newHd.getLng(), newHd.getLat());
+            String key = formatLngLatKey(newHd);
+            if (key == null) {
+                continue;
+            }
             HeatData existing = existingMap.get(key);
             if (existing != null) {
                 existing.setCount(existing.getCount() + newHd.getCount());
@@ -805,6 +810,27 @@ public class HeatDataCacheServiceImpl implements HeatDataCacheService {
             }
         }
         entry.touch();
+    }
+
+    /**
+     * 生成经纬度网格化键（保留 3 位小数，约 110 m 精度）。
+     * <p>{@code HeatData.lng / lat} 为 {@link Double} 可空类型，
+     * 若任一坐标为 {@code null}，直接传给 {@link String#format(String, Object...)}
+     * 会在自动装箱阶段抛 {@link NullPointerException}；本方法将空值显式短路，
+     * 返回 {@code null} 让调用方决定是否跳过该条记录，避免脏数据破坏整次 merge。</p>
+     *
+     * @param hd 待计算键的热力数据
+     * @return 形如 {@code "116.123,39.456"} 的网格键；任一坐标缺失则返回 {@code null}
+     */
+    private static String formatLngLatKey(HeatData hd) {
+        Double lng = hd.getLng();
+        Double lat = hd.getLat();
+        if (lng == null || lat == null) {
+            logger.warn("mergeHeatData 跳过 lng/lat 为空的 HeatData: count={}, abnormal={}, severity={}",
+                    hd.getCount(), hd.getAbnormal(), hd.getSeverity());
+            return null;
+        }
+        return String.format("%.3f,%.3f", lng, lat);
     }
 
     /**
