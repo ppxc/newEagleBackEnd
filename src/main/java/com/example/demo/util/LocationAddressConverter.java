@@ -96,6 +96,10 @@ public class LocationAddressConverter {
     private ScheduledExecutorService writeScheduler;
     // 批量写入锁
     private final Object batchWriteLock = new Object();
+    // DB 写入连续失败计数（用于避免死循环重试）
+    private volatile int consecutiveDbFailures = 0;
+    // 最大连续失败次数，超过后丢弃数据避免队列无限增长
+    private static final int MAX_CONSECUTIVE_FAILURES = 3;
 
     // 位置进度追踪服务
     private final LocationProgressCacheService locationProgressCacheService;
@@ -790,9 +794,12 @@ public class LocationAddressConverter {
         cache.setUpdateTime(formatDate(LocalDateTime.now()));
         cache.setExpireTime(formatDate(LocalDateTime.now().plusDays(180)));
         
-        // 加入写入队列（阻塞等待，避免丢弃数据）
+        // 加入写入队列（使用带超时的 offer 避免队列满时永久阻塞）
         try {
-            writeQueue.put(cache);
+            if (!writeQueue.offer(cache, 5, TimeUnit.SECONDS)) {
+                logger.warn("写入队列已满，丢弃缓存: lat={}, lng={}", latitude, longitude);
+                return;
+            }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             logger.warn("写入被中断，丢弃缓存: lat={}, lng={}", latitude, longitude);
@@ -899,10 +906,29 @@ public class LocationAddressConverter {
 
                 logger.info("批量写入完成，UPDATE={}, INSERT={}",
                         uniqueList.size() - newList.size(), newList.size());
+
+                // 写入成功，重置失败计数器
+                consecutiveDbFailures = 0;
             } catch (Exception e) {
-                logger.error("批量写入缓存失败: {}", e.getMessage());
-                for (LocationCache cache : batchList) {
-                    writeQueue.offer(cache);
+                consecutiveDbFailures++;
+                logger.error("批量写入缓存失败（连续失败次数: {}）: {}", consecutiveDbFailures, e.getMessage());
+
+                // 超过最大连续失败次数，丢弃数据避免队列无限增长
+                if (consecutiveDbFailures >= MAX_CONSECUTIVE_FAILURES) {
+                    logger.warn("DB 连续写入失败 {} 次，丢弃 {} 条缓存数据以避免死循环",
+                            consecutiveDbFailures, batchList.size());
+                } else {
+                    // 尝试将数据放回队列（使用 offer 避免阻塞）
+                    int requeued = 0;
+                    int dropped = 0;
+                    for (LocationCache cache : batchList) {
+                        if (!writeQueue.offer(cache)) {
+                            dropped++;
+                        } else {
+                            requeued++;
+                        }
+                    }
+                    logger.info("数据重试：重新入队 {} 条，丢弃 {} 条", requeued, dropped);
                 }
             }
         }
@@ -929,11 +955,14 @@ public class LocationAddressConverter {
      */
     private void cleanExpiredLocalCache() {
         long now = System.currentTimeMillis();
+        // 使用 Iterator 避免在迭代中修改 map 导致 ConcurrentModificationException
+        Iterator<Map.Entry<String, Long>> it = cacheTimestamps.entrySet().iterator();
         int cleaned = 0;
-        for (Map.Entry<String, Long> entry : cacheTimestamps.entrySet()) {
+        while (it.hasNext()) {
+            Map.Entry<String, Long> entry = it.next();
             if (now - entry.getValue() > LOCAL_CACHE_EXPIRE_MS) {
                 localCache.remove(entry.getKey());
-                cacheTimestamps.remove(entry.getKey());
+                it.remove();  // 使用 Iterator.remove() 而非 map.remove()
                 cleaned++;
             }
         }
