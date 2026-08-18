@@ -780,6 +780,11 @@ public class LocationAddressConverter {
      * 异步更新缓存（不阻塞主线程）
      */
     private void updateToCache(Double longitude, Double latitude, String address) {
+        // FB-07：null 坐标直接跳过，避免拼接出 "null,null" 缓存键互相覆盖
+        if (longitude == null || latitude == null) {
+            logger.warn("跳过 null 坐标缓存: lng={}, lat={}", longitude, latitude);
+            return;
+        }
         // 1. 先更新本地内存缓存（立即生效）
         String coordKey = longitude + "," + latitude;
         localCache.put(coordKey, address);

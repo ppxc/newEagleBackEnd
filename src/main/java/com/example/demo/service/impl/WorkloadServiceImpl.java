@@ -17,6 +17,7 @@ import javax.annotation.Resource;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.time.temporal.WeekFields;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -319,9 +320,16 @@ public class WorkloadServiceImpl implements WorkloadService {
      * day: "2026-01-15"
      */
     private String getPeriodKey(String tjDate, String granularity) {
-        if (tjDate == null || tjDate.length() < 10) return tjDate;
-
-        LocalDate date = LocalDate.parse(tjDate.substring(0, 10));
+        // FB-06/FB-13：显式校验输入，非法日期 fail-fast，不再返回垃圾值污染分组键
+        if (tjDate == null || tjDate.length() < 10) {
+            throw new IllegalArgumentException("无效的统计日期: " + tjDate);
+        }
+        LocalDate date;
+        try {
+            date = LocalDate.parse(tjDate.substring(0, 10));
+        } catch (DateTimeParseException e) {
+            throw new IllegalArgumentException("无效的统计日期: " + tjDate, e);
+        }
         DateTimeFormatter df;
 
         switch (granularity) {
@@ -334,7 +342,7 @@ public class WorkloadServiceImpl implements WorkloadService {
                 return monday.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
             case "day":
             default:
-                return tjDate.substring(0, 10);
+                return date.format(DateTimeFormatter.ISO_LOCAL_DATE);
         }
     }
 
