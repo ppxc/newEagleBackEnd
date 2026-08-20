@@ -16,8 +16,6 @@ public interface LocationCacheMapper {
 
     int updateById(LocationCache locationCache);
 
-    int deleteById(Long id);
-
     LocationCache findByCoordinates(@Param("longitude") Double longitude, @Param("latitude") Double latitude);
     
     LocationCache findValidByCoordinates(@Param("longitude") Double longitude, @Param("latitude") Double latitude, @Param("currentTime") String currentTime);

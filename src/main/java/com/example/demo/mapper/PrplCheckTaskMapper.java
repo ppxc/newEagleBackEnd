@@ -9,13 +9,7 @@ import java.util.Map;
 @Mapper
 public interface PrplCheckTaskMapper {
 
-    int insert(PrplCheckTask prplCheckTask);
-
     PrplCheckTask selectById(Long id);
-
-    int updateById(PrplCheckTask prplCheckTask);
-
-    int deleteById(Long id);
 
     List<PrplCheckTask> getAllTasksByDate(String date);
 

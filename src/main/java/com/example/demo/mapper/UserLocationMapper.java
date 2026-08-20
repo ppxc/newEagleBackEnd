@@ -8,13 +8,7 @@ import java.util.List;
 @Mapper
 public interface UserLocationMapper {
 
-    int insert(UserLocation userLocation);
-
     UserLocation selectById(Long id);
-
-    int updateById(UserLocation userLocation);
-
-    int deleteById(Long id);
 
     List<UserLocation> selectAll();
 

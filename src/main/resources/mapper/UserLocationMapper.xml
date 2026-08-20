@@ -21,31 +21,6 @@
         <result column="address" property="address"/>
     </resultMap>
 
-<!--    <insert id="insert" parameterType="com.example.demo.entity.UserLocation">-->
-<!--        INSERT INTO acd_jly_site (usercode, longitude, latitude, reporttime)-->
-<!--        VALUES (#{usercode}, #{longitude}, #{latitude}, #{reportTime})-->
-<!--    </insert>-->
-
-    <select id="selectById" resultMap="UserLocationResultMap">
-        SELECT id, usercode, longitude, latitude, reporttime
-        FROM acd_jly_site
-        WHERE id = #{id}
-    </select>
-
-<!--    <update id="updateById" parameterType="com.example.demo.entity.UserLocation">-->
-<!--        UPDATE acd_jly_site-->
-<!--        SET -->
-<!--            usercode = #{usercode},-->
-<!--            longitude = #{longitude},-->
-<!--            latitude = #{latitude},-->
-<!--            reporttime = #{reportTime}-->
-<!--        WHERE id = #{id}-->
-<!--    </update>-->
-
-<!--    <delete id="deleteById">-->
-<!--        DELETE FROM acd_jly_site WHERE id = #{id}-->
-<!--    </delete>-->
-
     <select id="selectByUsercode" resultMap="UserLocationResultMap">
         SELECT id, usercode, longitude, latitude, reporttime
         FROM acd_jly_site
