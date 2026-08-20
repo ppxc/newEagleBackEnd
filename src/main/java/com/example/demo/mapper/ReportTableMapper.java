@@ -1015,4 +1015,24 @@ public interface ReportTableMapper{
             @Param("tjDate") String tjDate,
             @Param("comnameSgs") String comnameSgs);
 
+    // ==================== 下拉去重端点（轻量级） ====================
+
+    /**
+     * 取市公司（comname_sgs）去重名单，用于搜索下拉。
+     *
+     * 三态日期过滤（由 Service 层保证至少一个生效，未传则返回全表去重）：
+     *   - 单日：tjDate 非空 → tjdate = #{tjDate}
+     *   - 区间：startDate + endDate 非空 → tjdate 范围
+     *   - 共享表分段：flagValue 非空 → jaflag = #{flagValue}
+     *
+     * {@code tableName} 为字符串拼接（SQL 标识符），调用方（Service 层）必须先过
+     * {@code TableNames.requireValid} 白名单校验；列名 comname_sgs / jaflag 硬编码，不接受外部输入。
+     */
+    List<String> getDistinctComnameSgs(
+            @Param("tableName") String tableName,
+            @Param("tjDate") String tjDate,
+            @Param("startDate") String startDate,
+            @Param("endDate") String endDate,
+            @Param("flagValue") String flagValue);
+
 }

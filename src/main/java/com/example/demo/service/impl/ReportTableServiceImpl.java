@@ -108,6 +108,13 @@ public class ReportTableServiceImpl implements ReportTableService {
     }
 
     @Override
+    public List<String> getDistinctComnameSgs(String tableName, String tjDate, String startDate, String endDate, String flagValue) {
+        // 白名单校验：${tableName} 是字符串拼接，必须先过白名单挡 SQL 注入
+        TableNames.requireValid(tableName);
+        return reportTableMapper.getDistinctComnameSgs(tableName, tjDate, startDate, endDate, flagValue);
+    }
+
+    @Override
     public List<CurGzlTableRy> getCurGzlData(String startDate, String endDate, String comName, String groups, String userName) {
         return reportTableMapper.getCurGzlData(startDate, endDate, comName, groups, userName);
     }
