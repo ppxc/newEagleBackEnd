@@ -10,31 +10,6 @@
         <result column="checksite" property="checksite"/>
     </resultMap>
 
-    <insert id="insert" parameterType="com.example.demo.entity.PrplCheckTask">
-        INSERT INTO prplchecktask (checklongitude, checklatitude, checkdate, checksite)
-        VALUES (#{checklongitude}, #{checklatitude}, #{checkdate}, #{checksite})
-    </insert>
-
-    <select id="selectById" resultMap="PrplCheckTaskResultMap">
-        SELECT id, checklongitude, checklatitude, checkdate, checksite
-        FROM prplchecktask
-        WHERE id = #{id}
-    </select>
-
-    <update id="updateById" parameterType="com.example.demo.entity.PrplCheckTask">
-        UPDATE prplchecktask
-        SET
-            checklongitude = #{checklongitude},
-            checklatitude = #{checklatitude},
-            checkdate = #{checkdate},
-            checksite = #{checksite}
-        WHERE id = #{id}
-    </update>
-
-    <delete id="deleteById">
-        DELETE FROM prplchecktask WHERE id = #{id}
-    </delete>
-
     <select id="getAllTasksByDate" resultMap="PrplCheckTaskResultMap">
         SELECT id, checklongitude, checklatitude, checkdate, checksite
         FROM prplchecktask

@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
 
 @RestController
@@ -37,6 +38,10 @@ public class WorkloadController {
             if ((startDate == null || startDate.trim().isEmpty())
                     && (endDate == null || endDate.trim().isEmpty())) {
                 String maxDate = workloadService.getMaxTjDate("acd_dangri_gzl_bm");
+                if (maxDate == null) {
+                    log.warn("表 acd_dangri_gzl_bm 为空（无最大统计日期），返回空列表");
+                    return Result.success(Collections.emptyList());
+                }
                 startDate = maxDate;
                 endDate = maxDate;
             }
@@ -68,6 +73,10 @@ public class WorkloadController {
             if ((startDate == null || startDate.trim().isEmpty())
                     && (endDate == null || endDate.trim().isEmpty())) {
                 String maxDate = workloadService.getMaxTjDate("acd_dangri_gzl_group");
+                if (maxDate == null) {
+                    log.warn("表 acd_dangri_gzl_group 为空（无最大统计日期），返回空列表");
+                    return Result.success(Collections.emptyList());
+                }
                 startDate = maxDate;
                 endDate = maxDate;
             }
@@ -99,6 +108,10 @@ public class WorkloadController {
             if ((startDate == null || startDate.trim().isEmpty())
                     && (endDate == null || endDate.trim().isEmpty())) {
                 String maxDate = workloadService.getMaxTjDate("acd_dangri_gzl_ry");
+                if (maxDate == null) {
+                    log.warn("表 acd_dangri_gzl_ry 为空（无最大统计日期），返回空列表");
+                    return Result.success(Collections.emptyList());
+                }
                 startDate = maxDate;
                 endDate = maxDate;
             }

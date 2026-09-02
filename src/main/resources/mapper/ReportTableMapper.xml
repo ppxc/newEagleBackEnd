@@ -2317,4 +2317,26 @@
         order by comcode
     </select>
 
+    <!-- ===================== 下拉去重：市公司名单（轻量级） =====================
+         ${tableName} 为字符串拼接（MyBatis 不支持 #{} 传 SQL 标识符）。
+         安全模型：表名在 Service 层经 TableNames.requireValid 白名单校验；
+         列名 comname_sgs / jaflag 硬编码，不接受外部入参。
+         三态日期过滤互不冲突，可组合生效；全空时退化为全表去重（业务上应避免）。 -->
+    <select id="getDistinctComnameSgs" resultType="java.lang.String">
+        SELECT DISTINCT comname_sgs
+        FROM ${tableName}
+        <where>
+            <if test="tjDate != null and tjDate != ''">
+                AND tjdate = #{tjDate}
+            </if>
+            <if test="startDate != null and startDate != '' and endDate != null and endDate != ''">
+                AND tjdate &gt;= #{startDate} AND tjdate &lt;= #{endDate}
+            </if>
+            <if test="flagValue != null and flagValue != ''">
+                AND jaflag = #{flagValue}
+            </if>
+        </where>
+        ORDER BY 1
+    </select>
+
 </mapper>

@@ -7,28 +7,6 @@
         <result column="groupscode" property="groupscode"/>
     </resultMap>
 
-    <insert id="insert" parameterType="com.example.demo.entity.Group">
-        INSERT INTO acd_ryzd (groups, groupscode)
-        VALUES (#{groups}, #{groupscode})
-    </insert>
-
-    <select id="selectByGroupscode" resultMap="GroupResultMap">
-        SELECT distinct groups, groupscode
-        FROM acd_ryzd
-        WHERE groupscode = #{groupscode}
-        AND groupscode is not null
-    </select>
-
-    <update id="updateByGroupscode" parameterType="com.example.demo.entity.Group">
-        UPDATE acd_ryzd
-        SET groups = #{groups}
-        WHERE groupscode = #{groupscode}
-    </update>
-
-    <delete id="deleteByGroupscode">
-        DELETE FROM acd_ryzd WHERE groupscode = #{groupscode}
-    </delete>
-
     <select id="selectAllGroups" resultMap="GroupResultMap">
         SELECT distinct groups, groupscode
         FROM acd_ryzd

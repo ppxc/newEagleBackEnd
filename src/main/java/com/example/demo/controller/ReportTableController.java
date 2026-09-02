@@ -2367,4 +2367,38 @@ public class ReportTableController {
             return Result.error("获取未决存量-案件类型分页失败", e);
         }
     }
+
+    // ==================== 下拉去重端点（轻量级） ====================
+
+    /**
+     * 取市公司（comname_sgs）去重名单，用于搜索下拉（替代"全量 list"构建下拉的做法）。
+     *
+     * 三态日期过滤（可组合）：
+     *   - 单日：tjDate
+     *   - 区间：startDate + endDate（如 cur_gzl 系列）
+     *   - 共享表分段：flagValue（jaflag）
+     * table 必填，且必须在 TableNames 白名单内。
+     */
+    @GetMapping("/distinct_comnames")
+    public Result<List<String>> getDistinctComnames(
+            @RequestParam(required = false) String table,
+            @RequestParam(required = false) String tjDate,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate,
+            @RequestParam(required = false) String flagValue) {
+        try {
+            if (table == null || table.trim().isEmpty()) {
+                return Result.error("表名不能为空", null);
+            }
+            List<String> data = reportTableService.getDistinctComnameSgs(
+                    table.trim(), tjDate, startDate, endDate, flagValue);
+            return Result.success(data);
+        } catch (IllegalArgumentException e) {
+            log.warn("下拉去重非法参数: {}", e.getMessage());
+            return Result.error(e.getMessage(), null);
+        } catch (Exception e) {
+            log.error("获取市公司去重名单失败", e);
+            return Result.error("获取市公司去重名单失败", e);
+        }
+    }
 }

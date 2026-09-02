@@ -35,10 +35,6 @@
         WHERE id = #{id}
     </update>
 
-    <delete id="deleteById">
-        DELETE FROM acd_location_address_cache WHERE id = #{id}
-    </delete>
-
     <select id="findByCoordinates" resultMap="LocationCacheResultMap">
         SELECT id, longitude, latitude, address, create_time, update_time, expire_time
         FROM acd_location_address_cache

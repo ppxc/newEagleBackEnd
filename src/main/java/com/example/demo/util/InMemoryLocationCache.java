@@ -65,11 +65,14 @@ public class InMemoryLocationCache {
      */
     public int cleanExpired() {
         long now = System.currentTimeMillis();
+        // 使用 Iterator 避免在迭代中修改 map 导致 ConcurrentModificationException
+        java.util.Iterator<java.util.Map.Entry<String, Long>> it = timestamps.entrySet().iterator();
         int cleaned = 0;
-        for (java.util.Map.Entry<String, Long> e : timestamps.entrySet()) {
+        while (it.hasNext()) {
+            java.util.Map.Entry<String, Long> e = it.next();
             if (now - e.getValue() > LOCAL_CACHE_EXPIRE_MS) {
                 cache.remove(e.getKey());
-                timestamps.remove(e.getKey());
+                it.remove();  // 使用 Iterator.remove() 而非 map.remove()
                 cleaned++;
             }
         }

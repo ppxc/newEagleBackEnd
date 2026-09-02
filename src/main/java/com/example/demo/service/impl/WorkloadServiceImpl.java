@@ -17,12 +17,15 @@ import javax.annotation.Resource;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.time.temporal.WeekFields;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -102,11 +105,11 @@ public class WorkloadServiceImpl implements WorkloadService {
 
         // 计算同组平均工作量用于异常判定
         double groupAvg = rawData.stream()
-                .mapToInt(CurGzlTableRy::getZl)
+                .mapToInt(e -> Optional.ofNullable(e.getZl()).orElse(0))
                 .average()
                 .orElse(0);
         double groupStd = calculateStd(rawData.stream()
-                .map(CurGzlTableRy::getZl)
+                .map(e -> Optional.ofNullable(e.getZl()).orElse(0))
                 .collect(Collectors.toList()), groupAvg);
 
         List<WorkloadEmpData> result = new ArrayList<>();
@@ -121,7 +124,7 @@ public class WorkloadServiceImpl implements WorkloadService {
 
             // 计算员工总体是否异常（平均工作量低于同组1.5个标准差）
             double empAvg = empData.stream()
-                    .mapToInt(CurGzlTableRy::getZl)
+                    .mapToInt(e -> Optional.ofNullable(e.getZl()).orElse(0))
                     .average()
                     .orElse(0);
             emp.setIsAbnormal(groupStd > 0 ? (empAvg < groupAvg - 1.5 * groupStd) : false);
@@ -157,7 +160,7 @@ public class WorkloadServiceImpl implements WorkloadService {
         // 提取各周期 zl 值用于 EWMA 异常检测
         List<Integer> zlValues = grouped.entrySet().stream()
                 .sorted(Comparator.comparing(Map.Entry::getKey))
-                .map(e -> e.getValue().stream().mapToInt(CurGzlTableBm::getZl).sum())
+                .map(e -> e.getValue().stream().mapToInt(item -> Optional.ofNullable(item.getZl()).orElse(0)).sum())
                 .collect(Collectors.toList());
         List<AbnormalInfo> abnormalInfos = detectEwmaAnomalyFull(zlValues);
 
@@ -169,10 +172,10 @@ public class WorkloadServiceImpl implements WorkloadService {
                     WorkloadDeptData.MonthData md = new WorkloadDeptData.MonthData();
                     md.setPeriod(entry.getKey());
                     List<CurGzlTableBm> items = entry.getValue();
-                    md.setZl(items.stream().mapToInt(CurGzlTableBm::getZl).sum());
-                    md.setJa(items.stream().mapToInt(CurGzlTableBm::getJa).sum());
-                    md.setCkJsl(items.stream().mapToInt(CurGzlTableBm::getCkJsl).sum());
-                    md.setDsTjl(items.stream().mapToInt(CurGzlTableBm::getDsTjl).sum());
+                    md.setZl(items.stream().mapToInt(item -> Optional.ofNullable(item.getZl()).orElse(0)).sum());
+                    md.setJa(items.stream().mapToInt(item -> Optional.ofNullable(item.getJa()).orElse(0)).sum());
+                    md.setCkJsl(items.stream().mapToInt(item -> Optional.ofNullable(item.getCkJsl()).orElse(0)).sum());
+                    md.setDsTjl(items.stream().mapToInt(item -> Optional.ofNullable(item.getDsTjl()).orElse(0)).sum());
                     AbnormalInfo info = infoList.get(idx[0]++);
                     md.setIsAbnormal(info.isAbnormal);
                     md.setAbnormalType(info.abnormalType);
@@ -193,7 +196,7 @@ public class WorkloadServiceImpl implements WorkloadService {
         // 提取各周期 zl 值用于 EWMA 异常检测
         List<Integer> zlValues = grouped.entrySet().stream()
                 .sorted(Comparator.comparing(Map.Entry::getKey))
-                .map(e -> e.getValue().stream().mapToInt(CurGzlTableGroup::getZl).sum())
+                .map(e -> e.getValue().stream().mapToInt(item -> Optional.ofNullable(item.getZl()).orElse(0)).sum())
                 .collect(Collectors.toList());
         List<AbnormalInfo> abnormalInfos = detectEwmaAnomalyFull(zlValues);
 
@@ -205,10 +208,10 @@ public class WorkloadServiceImpl implements WorkloadService {
                     WorkloadGroupData.MonthData md = new WorkloadGroupData.MonthData();
                     md.setPeriod(entry.getKey());
                     List<CurGzlTableGroup> items = entry.getValue();
-                    md.setZl(items.stream().mapToInt(CurGzlTableGroup::getZl).sum());
-                    md.setJa(items.stream().mapToInt(CurGzlTableGroup::getJa).sum());
-                    md.setCkJsl(items.stream().mapToInt(CurGzlTableGroup::getCkJsl).sum());
-                    md.setDsTjl(items.stream().mapToInt(CurGzlTableGroup::getDsTjl).sum());
+                    md.setZl(items.stream().mapToInt(item -> Optional.ofNullable(item.getZl()).orElse(0)).sum());
+                    md.setJa(items.stream().mapToInt(item -> Optional.ofNullable(item.getJa()).orElse(0)).sum());
+                    md.setCkJsl(items.stream().mapToInt(item -> Optional.ofNullable(item.getCkJsl()).orElse(0)).sum());
+                    md.setDsTjl(items.stream().mapToInt(item -> Optional.ofNullable(item.getDsTjl()).orElse(0)).sum());
                     AbnormalInfo info = infoList.get(idx[0]++);
                     md.setIsAbnormal(info.isAbnormal);
                     md.setAbnormalType(info.abnormalType);
@@ -271,10 +274,10 @@ public class WorkloadServiceImpl implements WorkloadService {
                     WorkloadEmpData.MonthData md = new WorkloadEmpData.MonthData();
                     md.setPeriod(entry.getKey());
                     List<CurGzlTableRy> items = entry.getValue();
-                    md.setZl(items.stream().mapToInt(CurGzlTableRy::getZl).sum());
-                    md.setJa(items.stream().mapToInt(CurGzlTableRy::getJa).sum());
-                    md.setCkJsl(items.stream().mapToInt(CurGzlTableRy::getCkJsl).sum());
-                    md.setDsTjl(items.stream().mapToInt(CurGzlTableRy::getDsTjl).sum());
+                    md.setZl(items.stream().mapToInt(item -> Optional.ofNullable(item.getZl()).orElse(0)).sum());
+                    md.setJa(items.stream().mapToInt(item -> Optional.ofNullable(item.getJa()).orElse(0)).sum());
+                    md.setCkJsl(items.stream().mapToInt(item -> Optional.ofNullable(item.getCkJsl()).orElse(0)).sum());
+                    md.setDsTjl(items.stream().mapToInt(item -> Optional.ofNullable(item.getDsTjl()).orElse(0)).sum());
 
                     int currentZl = md.getZl();
 
@@ -317,9 +320,16 @@ public class WorkloadServiceImpl implements WorkloadService {
      * day: "2026-01-15"
      */
     private String getPeriodKey(String tjDate, String granularity) {
-        if (tjDate == null || tjDate.length() < 10) return tjDate;
-
-        LocalDate date = LocalDate.parse(tjDate.substring(0, 10));
+        // FB-06/FB-13：显式校验输入，非法日期 fail-fast，不再返回垃圾值污染分组键
+        if (tjDate == null || tjDate.length() < 10) {
+            throw new IllegalArgumentException("无效的统计日期: " + tjDate);
+        }
+        LocalDate date;
+        try {
+            date = LocalDate.parse(tjDate.substring(0, 10));
+        } catch (DateTimeParseException e) {
+            throw new IllegalArgumentException("无效的统计日期: " + tjDate, e);
+        }
         DateTimeFormatter df;
 
         switch (granularity) {
@@ -332,7 +342,7 @@ public class WorkloadServiceImpl implements WorkloadService {
                 return monday.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
             case "day":
             default:
-                return tjDate.substring(0, 10);
+                return date.format(DateTimeFormatter.ISO_LOCAL_DATE);
         }
     }
 

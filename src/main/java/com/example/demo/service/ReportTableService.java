@@ -78,6 +78,18 @@ public interface ReportTableService {
      */
     String getMaxTjDateByTableAndFlag(String tableName, String jaflag);
 
+    /**
+     * 取市公司（comname_sgs）去重名单，用于搜索下拉。
+     *
+     * 三态日期过滤（可组合；全空则全表去重，业务上应避免）：
+     *   - 单日：tjDate 非空 → tjdate = #{tjDate}
+     *   - 区间：startDate + endDate 非空 → tjdate 范围
+     *   - 共享表分段：flagValue 非空 → jaflag = #{flagValue}
+     *
+     * 表名必须在 TableNames 白名单内，否则抛 IllegalArgumentException。
+     */
+    List<String> getDistinctComnameSgs(String tableName, String tjDate, String startDate, String endDate, String flagValue);
+
     List<CurGzlTableRy> getCurGzlData(String startDate, String endDate, String comName, String groups, String userName);
 
     // 新增：按部门统计
